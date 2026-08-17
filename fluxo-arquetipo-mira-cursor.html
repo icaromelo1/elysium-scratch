@@ -1,0 +1,346 @@
+<title>Elysium — Fluxo por Arquétipo, Mira e Cursor</title>
+<style>
+  :root {
+    --bg: #0d0b08;
+    --bg-soft: #17130d;
+    --panel: rgba(30, 25, 18, 0.9);
+    --panel-solid: #1c1811;
+    --ink: #ece3d0;
+    --ink-muted: #9a9384;
+    --ink-dim: #b7b0a0;
+    --ink-faint: #6d6656;
+    --gold: #c9a227;
+    --danger: #ad5a3c;
+    --player: #6f8f7a;
+    --purple: #8f7aa8;
+    --steel: #7a8fa3;
+    --road-fill: #332c22;
+    --border-gold: rgba(201, 162, 39, 0.32);
+    --border-danger: rgba(173, 90, 60, 0.4);
+    --border-faint: rgba(255, 255, 255, 0.14);
+    --border-hair: rgba(255, 255, 255, 0.06);
+    color-scheme: dark light;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #f4efe3;
+    --bg-soft: #ece4d2;
+    --panel: rgba(255, 251, 240, 0.92);
+    --panel-solid: #fffbf0;
+    --ink: #2a2318;
+    --ink-muted: #6b6151;
+    --ink-dim: #4f4636;
+    --ink-faint: #948a76;
+    --road-fill: #d8cbab;
+    --border-gold: rgba(150, 116, 20, 0.35);
+    --border-danger: rgba(148, 68, 44, 0.4);
+    --border-faint: rgba(0, 0, 0, 0.12);
+    --border-hair: rgba(0, 0, 0, 0.06);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f4efe3;
+      --bg-soft: #ece4d2;
+      --panel: rgba(255, 251, 240, 0.92);
+      --panel-solid: #fffbf0;
+      --ink: #2a2318;
+      --ink-muted: #6b6151;
+      --ink-dim: #4f4636;
+      --ink-faint: #948a76;
+      --road-fill: #d8cbab;
+      --border-gold: rgba(150, 116, 20, 0.35);
+      --border-danger: rgba(148, 68, 44, 0.4);
+      --border-faint: rgba(0, 0, 0, 0.12);
+      --border-hair: rgba(0, 0, 0, 0.06);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: radial-gradient(ellipse at 50% -10%, var(--bg-soft) 0%, var(--bg) 60%);
+    color: var(--ink);
+    font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+    padding: 48px 20px 80px;
+  }
+
+  .page { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+
+  header.hero { text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  header.hero .eyebrow { font-family: Georgia, serif; letter-spacing: 4px; color: var(--gold); font-size: 12px; text-transform: uppercase; }
+  header.hero h1 {
+    font-size: clamp(26px, 5vw, 42px);
+    margin: 0;
+    background: linear-gradient(180deg, var(--ink), var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  header.hero p { max-width: 640px; color: var(--ink-muted); line-height: 1.6; margin: 0; font-size: 15px; }
+  header.hero .path {
+    font-family: 'SF Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    background: var(--panel-solid);
+    border: 1px solid var(--border-hair);
+    border-radius: 6px;
+    padding: 6px 12px;
+  }
+
+  section { display: flex; flex-direction: column; gap: 18px; }
+  section > .section-head { display: flex; align-items: baseline; gap: 14px; border-bottom: 1px solid var(--border-hair); padding-bottom: 10px; }
+  section > .section-head h2 { font-size: 20px; margin: 0; }
+  section > .section-head .num { font-family: Georgia, serif; color: var(--gold); font-size: 14px; opacity: 0.8; }
+
+  .panel { background: var(--panel); border: 1px solid var(--border-gold); border-radius: 10px; padding: 24px; }
+
+  .note-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .note-card { background: var(--panel-solid); border: 1px solid var(--border-hair); border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .note-card .k-label { font-family: Georgia, serif; font-weight: 700; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; font-size: 11px; }
+  .note-card p { margin: 0; font-size: 13px; color: var(--ink-dim); line-height: 1.5; }
+
+  /* flow diagram */
+  .flow-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .flow-card {
+    background: var(--panel-solid);
+    border: 1px solid var(--border-hair);
+    border-radius: 10px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .flow-card .gods { font-family: Georgia, serif; font-weight: 700; color: var(--gold); font-size: 13px; letter-spacing: 1px; }
+  .flow-card .arch { font-size: 11px; letter-spacing: 1.5px; color: var(--ink-muted); text-transform: uppercase; }
+  .flow-steps { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+  .flow-step {
+    background: var(--bg);
+    border: 1px solid var(--border-hair);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12px;
+    text-align: center;
+  }
+  .flow-step.skip { opacity: 0.4; text-decoration: line-through; border-style: dashed; }
+  .flow-step.highlight { border-color: var(--border-gold); color: var(--gold); }
+  .flow-arrow { text-align: center; color: var(--ink-faint); font-size: 11px; }
+
+  /* placement mockup */
+  .placement-mock {
+    position: relative;
+    height: 300px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border-faint);
+    background: var(--bg);
+  }
+  .placement-mock svg { width: 100%; height: 100%; display: block; }
+  .placement-preview {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px dashed var(--gold);
+    top: 118px;
+    left: 520px;
+    transform: translate(-50%, -50%);
+  }
+  .placement-confirm {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gold);
+    color: var(--bg);
+    font-family: Georgia, serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 8px 22px;
+    border-radius: 6px;
+  }
+
+  /* aim indicator mockup */
+  .aim-mock {
+    position: relative;
+    height: 260px;
+    background: var(--bg);
+    border: 1px solid var(--border-faint);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .aim-ring { position: absolute; width: 180px; height: 180px; border-radius: 50%; border: 2px dashed rgba(236,227,208,0.3); }
+  .aim-arrow {
+    position: absolute;
+    width: 0; height: 0;
+    top: 50%; left: 50%;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-bottom: 16px solid var(--gold);
+    transform: translate(-50%, -50%) rotate(-40deg) translateY(-90px);
+    transform-origin: center 90px;
+  }
+  .aim-player { width: 36px; height: 36px; border-radius: 50%; background: var(--player); box-shadow: 0 0 0 4px rgba(111,143,122,0.18); z-index: 2; }
+  .aim-enemy { position: absolute; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--danger); top: 55px; right: 70px; }
+
+  /* cursor mockup */
+  .cursor-mock {
+    height: 200px;
+    background: var(--bg);
+    border: 1px solid var(--border-faint);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 60px;
+  }
+  .cursor-demo { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .cursor-demo .label { font-size: 11px; letter-spacing: 1px; color: var(--ink-faint); text-transform: uppercase; }
+  .cursor-reticle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    position: relative;
+  }
+  .cursor-reticle::after {
+    content: '';
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--gold);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .cursor-reticle::before {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-top: 2px solid var(--gold);
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .cursor-arrow {
+    width: 0; height: 0;
+    border-left: 8px solid transparent;
+    border-top: 20px solid var(--ink-muted);
+    transform: rotate(-30deg);
+  }
+
+  footer { text-align: center; font-size: 12px; color: var(--ink-faint); padding-top: 20px; border-top: 1px solid var(--border-hair); }
+
+  @media (max-width: 700px) {
+    .flow-row { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="page">
+  <header class="hero">
+    <div class="eyebrow">Elysium · companion de design</div>
+    <h1>Fluxo por Arquétipo, Mira e Cursor</h1>
+    <p>Diagrama de apoio: os 3 fluxos pós-nível-2 por arquétipo de movimento, o dialog de posicionamento fixo, o indicador de mira e o cursor temático.</p>
+    <div class="path">docs/design/2026-07-19-fluxo-arquetipo-mira-cursor.md</div>
+  </header>
+
+  <section>
+    <div class="section-head"><span class="num">01</span><h2>3 fluxos pós-nível-2, por arquétipo</h2></div>
+    <div class="panel">
+      <div class="flow-row">
+        <div class="flow-card">
+          <div class="gods">ATENA · MARTE</div>
+          <div class="arch">Nômade entre zonas</div>
+          <div class="flow-steps">
+            <div class="flow-step highlight">Escolher deus</div>
+            <div class="flow-step skip">Escolher zona</div>
+            <div class="flow-step highlight">Jogando (livre)</div>
+          </div>
+        </div>
+        <div class="flow-card">
+          <div class="gods">ANÚBIS · GUAN YU</div>
+          <div class="arch">Errante na zona</div>
+          <div class="flow-steps">
+            <div class="flow-step highlight">Escolher deus</div>
+            <div class="flow-step highlight">ZoneSelect (Norte/Sul)</div>
+            <div class="flow-step highlight">Jogando (preso à zona)</div>
+          </div>
+        </div>
+        <div class="flow-card">
+          <div class="gods">ODIN</div>
+          <div class="arch">Imóvel</div>
+          <div class="flow-steps">
+            <div class="flow-step highlight">Escolher deus</div>
+            <div class="flow-step highlight">PlacementSelect (ponto exato)</div>
+            <div class="flow-step highlight">Jogando (fixo no ponto)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="num">02</span><h2>PlacementSelect — clique livre + confirmação</h2></div>
+    <div class="panel">
+      <div class="placement-mock">
+        <svg viewBox="-220 -90 2360 1260" xmlns="http://www.w3.org/2000/svg">
+          <rect x="-220" y="-90" width="2360" height="1260" fill="var(--bg)" />
+          <path d="M -220,540 C 250,540 300,860 620,820 C 940,780 700,300 1020,260 C 1340,220 1120,880 1460,860 C 1680,846 1750,600 2140,460"
+                fill="none" stroke="var(--road-fill)" stroke-width="46" stroke-linecap="round" />
+        </svg>
+        <div class="placement-preview"></div>
+        <div class="placement-confirm">CONFIRMAR</div>
+      </div>
+      <div class="note-row" style="margin-top:16px;">
+        <div class="note-card"><span class="k-label">Validação</span><p>Ponto precisa estar fora da estrada (mesma margem sólida da colisão) e dentro dos limites do mundo.</p></div>
+        <div class="note-card"><span class="k-label">Confirmação em 2 passos</span><p>Clicar só move a prévia; só planta a torre ao clicar em CONFIRMAR — diferente do ZoneSelect, aqui um clique errado custa mais.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="num">03</span><h2>Indicador de mira</h2></div>
+    <div class="panel">
+      <div class="aim-mock">
+        <div class="aim-ring"></div>
+        <div class="aim-arrow"></div>
+        <div class="aim-player"></div>
+        <div class="aim-enemy"></div>
+      </div>
+      <div class="note-row" style="margin-top:16px;">
+        <div class="note-card"><span class="k-label">Fonte da direção</span><p>Aponta pro alvo resolvido por <code>resolveAttackTarget</code> (cobre AUTO/melee/mouse); sem alvo, aponta pro <code>facing</code> do jogador.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="num">04</span><h2>Cursor customizado</h2></div>
+    <div class="panel">
+      <div class="cursor-mock">
+        <div class="cursor-demo">
+          <span class="label">fora do jogo</span>
+          <div class="cursor-arrow"></div>
+        </div>
+        <div class="cursor-demo">
+          <span class="label">durante o jogo</span>
+          <div class="cursor-reticle"></div>
+        </div>
+      </div>
+      <div class="note-row" style="margin-top:16px;">
+        <div class="note-card"><span class="k-label">Escopo</span><p>Retículo dourado via SVG inline (data URI), só quando <code>runState === 'playing'</code>. Menu/diálogos ficam com o cursor padrão.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Companion visual do brainstorming de 19/07/2026 · não substitui o doc de design</footer>
+</div>

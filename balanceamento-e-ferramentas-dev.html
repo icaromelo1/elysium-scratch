@@ -1,0 +1,275 @@
+<title>Elysium — Balanceamento e Ferramentas Dev</title>
+<style>
+  :root {
+    --bg: #0d0b08;
+    --bg-soft: #17130d;
+    --panel: rgba(30, 25, 18, 0.9);
+    --panel-solid: #1c1811;
+    --ink: #ece3d0;
+    --ink-muted: #9a9384;
+    --ink-dim: #b7b0a0;
+    --ink-faint: #6d6656;
+    --gold: #c9a227;
+    --danger: #ad5a3c;
+    --player: #6f8f7a;
+    --purple: #8f7aa8;
+    --steel: #7a8fa3;
+    --road-fill: #332c22;
+    --border-gold: rgba(201, 162, 39, 0.32);
+    --border-danger: rgba(173, 90, 60, 0.4);
+    --border-faint: rgba(255, 255, 255, 0.14);
+    --border-hair: rgba(255, 255, 255, 0.06);
+    color-scheme: dark light;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #f4efe3;
+    --bg-soft: #ece4d2;
+    --panel: rgba(255, 251, 240, 0.92);
+    --panel-solid: #fffbf0;
+    --ink: #2a2318;
+    --ink-muted: #6b6151;
+    --ink-dim: #4f4636;
+    --ink-faint: #948a76;
+    --road-fill: #d8cbab;
+    --border-gold: rgba(150, 116, 20, 0.35);
+    --border-danger: rgba(148, 68, 44, 0.4);
+    --border-faint: rgba(0, 0, 0, 0.12);
+    --border-hair: rgba(0, 0, 0, 0.06);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f4efe3;
+      --bg-soft: #ece4d2;
+      --panel: rgba(255, 251, 240, 0.92);
+      --panel-solid: #fffbf0;
+      --ink: #2a2318;
+      --ink-muted: #6b6151;
+      --ink-dim: #4f4636;
+      --ink-faint: #948a76;
+      --road-fill: #d8cbab;
+      --border-gold: rgba(150, 116, 20, 0.35);
+      --border-danger: rgba(148, 68, 44, 0.4);
+      --border-faint: rgba(0, 0, 0, 0.12);
+      --border-hair: rgba(0, 0, 0, 0.06);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: radial-gradient(ellipse at 50% -10%, var(--bg-soft) 0%, var(--bg) 60%);
+    color: var(--ink);
+    font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+    padding: 48px 20px 80px;
+  }
+
+  .page { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+
+  header.hero { text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  header.hero .eyebrow { font-family: Georgia, serif; letter-spacing: 4px; color: var(--gold); font-size: 12px; text-transform: uppercase; }
+  header.hero h1 {
+    font-size: clamp(28px, 5vw, 44px);
+    margin: 0;
+    background: linear-gradient(180deg, var(--ink), var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  header.hero p { max-width: 640px; color: var(--ink-muted); line-height: 1.6; margin: 0; font-size: 15px; }
+  header.hero .path {
+    font-family: 'SF Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    background: var(--panel-solid);
+    border: 1px solid var(--border-hair);
+    border-radius: 6px;
+    padding: 6px 12px;
+  }
+
+  section { display: flex; flex-direction: column; gap: 18px; }
+  section > .section-head { display: flex; align-items: baseline; gap: 14px; border-bottom: 1px solid var(--border-hair); padding-bottom: 10px; }
+  section > .section-head h2 { font-size: 20px; margin: 0; }
+  section > .section-head .num { font-family: Georgia, serif; color: var(--gold); font-size: 14px; opacity: 0.8; }
+
+  .panel { background: var(--panel); border: 1px solid var(--border-gold); border-radius: 10px; padding: 24px; }
+
+  .note-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .note-card { background: var(--panel-solid); border: 1px solid var(--border-hair); border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .note-card .k-label { font-family: Georgia, serif; font-weight: 700; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; font-size: 11px; }
+  .note-card p { margin: 0; font-size: 13px; color: var(--ink-dim); line-height: 1.5; }
+
+  /* chart */
+  .chart-frame { background: var(--bg); border: 1px solid var(--border-faint); border-radius: 10px; padding: 16px; }
+  .chart-frame svg { width: 100%; height: auto; display: block; }
+  .chart-legend { display: flex; gap: 20px; font-size: 12px; color: var(--ink-dim); margin-top: 10px; }
+  .chart-legend .item { display: flex; align-items: center; gap: 6px; }
+  .chart-legend .swatch { width: 14px; height: 3px; border-radius: 2px; }
+
+  /* HUD speed slider mockup */
+  .speed-mock { display: flex; align-items: center; gap: 16px; background: var(--panel-solid); border: 1px solid var(--border-gold); border-radius: 10px; padding: 16px 20px; }
+  .speed-mock .label { font-family: Georgia, serif; font-size: 12px; letter-spacing: 2px; color: var(--gold); white-space: nowrap; }
+  .speed-track { flex: 1; height: 8px; border-radius: 4px; background: var(--road-fill); position: relative; }
+  .speed-track .fill { position: absolute; inset: 0; width: 45%; background: linear-gradient(90deg, var(--steel), var(--gold)); border-radius: 4px; }
+  .speed-track .knob { position: absolute; left: 45%; top: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; border-radius: 50%; background: var(--ink); border: 2px solid var(--gold); }
+  .speed-value { font-family: 'SF Mono', monospace; font-weight: 700; color: var(--ink); min-width: 34px; text-align: right; }
+
+  /* mod menu mockup */
+  .modmenu {
+    background: var(--panel-solid);
+    border: 1px solid var(--border-gold);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .modmenu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    background: rgba(201, 162, 39, 0.08);
+    border-bottom: 1px solid var(--border-hair);
+  }
+  .modmenu-header .title { font-family: Georgia, serif; font-weight: 700; letter-spacing: 2px; color: var(--gold); font-size: 13px; }
+  .modmenu-header .key { font-family: 'SF Mono', monospace; font-size: 11px; color: var(--ink-faint); border: 1px solid var(--border-faint); border-radius: 4px; padding: 2px 8px; }
+  .modmenu-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0; }
+  .modmenu-group { padding: 16px 18px; border-right: 1px solid var(--border-hair); border-bottom: 1px solid var(--border-hair); }
+  .modmenu-group:last-child { border-right: none; }
+  .modmenu-group h3 { font-family: Georgia, serif; font-size: 12px; letter-spacing: 2px; color: var(--ink-muted); margin: 0 0 12px; text-transform: uppercase; }
+  .modmenu-field { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; font-size: 12.5px; }
+  .modmenu-field .name { color: var(--ink-dim); }
+  .modmenu-field input {
+    width: 64px;
+    background: var(--bg);
+    border: 1px solid var(--border-faint);
+    border-radius: 5px;
+    color: var(--ink);
+    font-family: 'SF Mono', monospace;
+    font-size: 12px;
+    padding: 4px 6px;
+    text-align: right;
+  }
+  .modmenu-readout {
+    grid-column: 1 / -1;
+    padding: 16px 18px;
+    background: rgba(122, 143, 163, 0.06);
+  }
+  .modmenu-readout h3 { font-family: Georgia, serif; font-size: 12px; letter-spacing: 2px; color: var(--steel); margin: 0 0 12px; text-transform: uppercase; }
+  .readout-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+  .readout-item { background: var(--bg); border: 1px solid var(--border-hair); border-radius: 6px; padding: 8px 12px; }
+  .readout-item .k { font-size: 10px; letter-spacing: 1px; color: var(--ink-faint); text-transform: uppercase; }
+  .readout-item .v { font-family: 'SF Mono', monospace; font-weight: 700; font-size: 15px; color: var(--player); margin-top: 2px; }
+
+  footer { text-align: center; font-size: 12px; color: var(--ink-faint); padding-top: 20px; border-top: 1px solid var(--border-hair); }
+</style>
+
+<div class="page">
+  <header class="hero">
+    <div class="eyebrow">Elysium · companion de design</div>
+    <h1>Balanceamento e Ferramentas Dev</h1>
+    <p>Diagrama de apoio: curva de cura por nível, controle de velocidade do jogo e o mod menu de atributos globais.</p>
+    <div class="path">docs/design/2026-07-18-balanceamento-e-ferramentas-dev.md</div>
+  </header>
+
+  <section>
+    <div class="section-head"><span class="num">01</span><h2>Cura ao subir de nível</h2></div>
+    <div class="panel">
+      <div class="chart-frame">
+        <svg viewBox="0 0 720 260" xmlns="http://www.w3.org/2000/svg">
+          <line x1="50" y1="20" x2="50" y2="220" stroke="var(--border-faint)" stroke-width="1" />
+          <line x1="50" y1="220" x2="700" y2="220" stroke="var(--border-faint)" stroke-width="1" />
+          <text x="20" y="24" fill="var(--ink-faint)" font-size="11">50%</text>
+          <text x="20" y="124" fill="var(--ink-faint)" font-size="11">25%</text>
+          <text x="30" y="224" fill="var(--ink-faint)" font-size="11">0</text>
+          <text x="45" y="240" fill="var(--ink-faint)" font-size="11" text-anchor="middle">1</text>
+          <text x="370" y="240" fill="var(--ink-faint)" font-size="11" text-anchor="middle">10</text>
+          <text x="695" y="240" fill="var(--ink-faint)" font-size="11" text-anchor="middle">20+</text>
+
+          <!-- HP heal curve: min(50, 8+level) mapped 0-50 -> y 220-20 -->
+          <polyline
+            fill="none" stroke="var(--player)" stroke-width="2.5"
+            points="50,183.6 82,176.4 114,169.2 146,162 178,154.8 210,147.6 242,140.4 274,133.2 306,126 338,118.8 370,111.6 402,104.4 434,97.2 466,90 498,82.8 530,75.6 562,68.4 594,61.2 626,54 658,46.8 690,20"
+          />
+          <!-- leak reduction step curve: 1,1..1(9x) then 2 (10x) then 3(20+) mapped 0-3 -> y 220 - v*(200/3) roughly, scaled visually -->
+          <polyline
+            fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-dasharray="6 4"
+            points="50,153 338,153 338,86 626,86 626,20 690,20"
+          />
+        </svg>
+      </div>
+      <div class="chart-legend">
+        <div class="item"><span class="swatch" style="background:var(--player)"></span>Cura de vida (% do máx.)</div>
+        <div class="item"><span class="swatch" style="background:var(--gold); border-top:1px dashed var(--gold)"></span>Redução de vazamentos</div>
+      </div>
+    </div>
+    <div class="note-row">
+      <div class="note-card"><span class="k-label">Vida</span><p><code>min(50%, 8% + nível%)</code> do máximo atual — nível 3 → 11%, nível 15 → 23%, cap em 50% a partir do nível 42 (na prática, nível 20+ já perto do teto).</p></div>
+      <div class="note-card"><span class="k-label">Vazamentos</span><p><code>1 + floor(nível / 10)</code> — degraus em 1, 10 e 20, acompanhando o aumento de dificuldade.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="num">02</span><h2>Velocidade do jogo (1×–10×)</h2></div>
+    <div class="panel">
+      <div class="speed-mock">
+        <span class="label">VELOCIDADE</span>
+        <div class="speed-track"><div class="fill"></div><div class="knob"></div></div>
+        <span class="speed-value">4.5×</span>
+      </div>
+      <div class="note-row" style="margin-top:16px;">
+        <div class="note-card"><span class="k-label">Ponto único</span><p>Multiplica o <code>deltaMs</code> no <code>onTick</code> — movimento, combate, ondas e stamina aceleram juntos, sem tocar em cada sistema.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="num">03</span><h2>Mod menu (admin)</h2></div>
+    <div class="modmenu">
+      <div class="modmenu-header">
+        <span class="title">PAINEL DE AJUSTE — ELYSIUM</span>
+        <span class="key">tecla ` </span>
+      </div>
+      <div class="modmenu-body">
+        <div class="modmenu-group">
+          <h3>Jogador</h3>
+          <div class="modmenu-field"><span class="name">Velocidade base</span><input type="text" value="220" /></div>
+          <div class="modmenu-field"><span class="name">Dano base</span><input type="text" value="10" /></div>
+          <div class="modmenu-field"><span class="name">Vida máx. base</span><input type="text" value="100" /></div>
+          <div class="modmenu-field"><span class="name">Alcance melee</span><input type="text" value="90" /></div>
+          <div class="modmenu-field"><span class="name">Mult. afinidade</span><input type="text" value="1.15" /></div>
+        </div>
+        <div class="modmenu-group">
+          <h3>Inimigos</h3>
+          <div class="modmenu-field"><span class="name">HP</span><input type="text" value="40" /></div>
+          <div class="modmenu-field"><span class="name">Velocidade</span><input type="text" value="70" /></div>
+          <div class="modmenu-field"><span class="name">Dano de contato</span><input type="text" value="8" /></div>
+          <div class="modmenu-field"><span class="name">Intervalo de spawn</span><input type="text" value="1800" /></div>
+        </div>
+        <div class="modmenu-group">
+          <h3>Progressão</h3>
+          <div class="modmenu-field"><span class="name">Cura base %</span><input type="text" value="8" /></div>
+          <div class="modmenu-field"><span class="name">Cura por nível %</span><input type="text" value="1" /></div>
+          <div class="modmenu-field"><span class="name">Cura teto %</span><input type="text" value="50" /></div>
+          <div class="modmenu-field"><span class="name">XP base</span><input type="text" value="10" /></div>
+        </div>
+        <div class="modmenu-readout">
+          <h3>Valores calculados agora (somente leitura)</h3>
+          <div class="readout-grid">
+            <div class="readout-item"><div class="k">Dano final</div><div class="v">15.2</div></div>
+            <div class="readout-item"><div class="k">Velocidade final</div><div class="v">246</div></div>
+            <div class="readout-item"><div class="k">Vel. de ataque</div><div class="v">×1.18</div></div>
+            <div class="readout-item"><div class="k">Alcance final</div><div class="v">103</div></div>
+            <div class="readout-item"><div class="k">Afinidade</div><div class="v" style="color:var(--gold)">alinhada</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="note-row">
+      <div class="note-card"><span class="k-label">Fonte única</span><p><code>useTunablesStore</code> novo — <code>GamePage.vue</code> passa a ler de lá em vez de constantes fixas; o painel só lê/escreve nesse store.</p></div>
+      <div class="note-card"><span class="k-label">Escopo v1</span><p>Constantes globais só — os 90+ nós individuais da skill tree ficam pra uma iteração futura do mesmo painel.</p></div>
+    </div>
+  </section>
+
+  <footer>Companion visual do brainstorming de 18/07/2026 · não substitui o doc de design</footer>
+</div>

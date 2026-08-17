@@ -1,0 +1,568 @@
+<title>Elysium — Zonas, Combate e Movimento</title>
+<style>
+  :root {
+    --bg: #0d0b08;
+    --bg-soft: #17130d;
+    --panel: rgba(30, 25, 18, 0.9);
+    --panel-solid: #1c1811;
+    --ink: #ece3d0;
+    --ink-muted: #9a9384;
+    --ink-dim: #b7b0a0;
+    --ink-faint: #6d6656;
+    --gold: #c9a227;
+    --danger: #ad5a3c;
+    --player: #6f8f7a;
+    --purple: #8f7aa8;
+    --steel: #7a8fa3;
+    --road-fill: #332c22;
+    --road-dash: #4a4132;
+    --border-gold: rgba(201, 162, 39, 0.32);
+    --border-danger: rgba(173, 90, 60, 0.4);
+    --border-faint: rgba(255, 255, 255, 0.14);
+    --border-hair: rgba(255, 255, 255, 0.06);
+    --zone-north: rgba(122, 143, 163, 0.1);
+    --zone-south: rgba(111, 143, 122, 0.1);
+    color-scheme: dark light;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #f4efe3;
+    --bg-soft: #ece4d2;
+    --panel: rgba(255, 251, 240, 0.92);
+    --panel-solid: #fffbf0;
+    --ink: #2a2318;
+    --ink-muted: #6b6151;
+    --ink-dim: #4f4636;
+    --ink-faint: #948a76;
+    --road-fill: #d8cbab;
+    --road-dash: #c3b28a;
+    --border-gold: rgba(150, 116, 20, 0.35);
+    --border-danger: rgba(148, 68, 44, 0.4);
+    --border-faint: rgba(0, 0, 0, 0.12);
+    --border-hair: rgba(0, 0, 0, 0.06);
+    --zone-north: rgba(90, 115, 138, 0.12);
+    --zone-south: rgba(84, 115, 95, 0.14);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f4efe3;
+      --bg-soft: #ece4d2;
+      --panel: rgba(255, 251, 240, 0.92);
+      --panel-solid: #fffbf0;
+      --ink: #2a2318;
+      --ink-muted: #6b6151;
+      --ink-dim: #4f4636;
+      --ink-faint: #948a76;
+      --road-fill: #d8cbab;
+      --road-dash: #c3b28a;
+      --border-gold: rgba(150, 116, 20, 0.35);
+      --border-danger: rgba(148, 68, 44, 0.4);
+      --border-faint: rgba(0, 0, 0, 0.12);
+      --border-hair: rgba(0, 0, 0, 0.06);
+      --zone-north: rgba(90, 115, 138, 0.12);
+      --zone-south: rgba(84, 115, 95, 0.14);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: radial-gradient(ellipse at 50% -10%, var(--bg-soft) 0%, var(--bg) 60%);
+    color: var(--ink);
+    font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+    padding: 48px 20px 80px;
+  }
+
+  .page {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+
+  .k-title { font-family: Georgia, 'Times New Roman', serif; font-weight: 700; }
+  .k-label {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-transform: uppercase;
+    font-size: 12px;
+  }
+
+  header.hero {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+
+  header.hero .eyebrow {
+    font-family: Georgia, 'Times New Roman', serif;
+    letter-spacing: 4px;
+    color: var(--gold);
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+
+  header.hero h1 {
+    font-size: clamp(32px, 5vw, 48px);
+    margin: 0;
+    letter-spacing: 1px;
+    background: linear-gradient(180deg, var(--ink), var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  header.hero p {
+    max-width: 620px;
+    color: var(--ink-muted);
+    line-height: 1.6;
+    margin: 0;
+    font-size: 15px;
+  }
+
+  header.hero .path {
+    font-family: 'SF Mono', 'Cascadia Code', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    background: var(--panel-solid);
+    border: 1px solid var(--border-hair);
+    border-radius: 6px;
+    padding: 6px 12px;
+  }
+
+  section { display: flex; flex-direction: column; gap: 18px; }
+
+  section > .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    border-bottom: 1px solid var(--border-hair);
+    padding-bottom: 10px;
+  }
+
+  section > .section-head h2 {
+    font-size: 20px;
+    margin: 0;
+    color: var(--ink);
+  }
+
+  section > .section-head .num {
+    font-family: Georgia, serif;
+    color: var(--gold);
+    font-size: 14px;
+    opacity: 0.8;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border-gold);
+    border-radius: 10px;
+    padding: 24px;
+  }
+
+  /* --- map diagram --- */
+  .map-wrap { display: flex; flex-direction: column; gap: 14px; }
+  .map-svg-frame {
+    background: var(--bg);
+    border: 1px solid var(--border-faint);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .map-svg-frame svg { display: block; width: 100%; height: auto; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    font-size: 12.5px;
+    color: var(--ink-dim);
+  }
+  .legend .item { display: flex; align-items: center; gap: 7px; }
+  .legend .swatch { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+  .legend .swatch.circle { border-radius: 50%; }
+
+  .note-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .note-card {
+    background: var(--panel-solid);
+    border: 1px solid var(--border-hair);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .note-card .k-label { font-size: 11px; }
+  .note-card p { margin: 0; font-size: 13px; color: var(--ink-dim); line-height: 1.5; }
+
+  /* --- stamina/sprint mockup --- */
+  .hud-mock {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .hud-card {
+    background: var(--panel-solid);
+    border: 1px solid var(--border-gold);
+    border-radius: 10px;
+    padding: 16px 20px;
+    min-width: 260px;
+    flex: 1 1 260px;
+  }
+  .bar-row { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+  .bar-row:first-child { margin-top: 0; }
+  .bar-row .bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .bar-label .name { font-family: Georgia, serif; font-weight: 700; color: var(--gold); }
+  .bar-label .value { color: var(--ink-muted); font-family: 'SF Mono', monospace; letter-spacing: 0; }
+  .bar-track {
+    height: 10px;
+    border-radius: 5px;
+    background: var(--road-fill);
+    overflow: hidden;
+    border: 1px solid var(--border-hair);
+  }
+  .bar-fill { height: 100%; border-radius: 5px; }
+  .bar-fill.hp { background: var(--player); width: 100%; }
+  .bar-fill.stamina {
+    background: linear-gradient(90deg, var(--steel), var(--gold));
+    width: 62%;
+    animation: drain 3.2s ease-in-out infinite;
+  }
+  @keyframes drain {
+    0%, 100% { width: 90%; }
+    45% { width: 18%; }
+    55% { width: 18%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bar-fill.stamina { animation: none; width: 55%; }
+  }
+
+  .key-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 26px;
+    padding: 0 8px;
+    border-radius: 5px;
+    border: 1px solid var(--border-faint);
+    background: var(--bg-soft);
+    font-family: 'SF Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+  }
+
+  .sprint-caption {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    font-size: 12.5px;
+    color: var(--ink-muted);
+  }
+
+  /* --- combat feedback mockup --- */
+  .combat-mock {
+    position: relative;
+    height: 280px;
+    background:
+      radial-gradient(ellipse at 30% 70%, rgba(122,143,163,0.08), transparent 55%),
+      var(--bg);
+    border: 1px solid var(--border-faint);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .attack-line {
+    position: absolute;
+    left: 108px;
+    top: 176px;
+    width: 220px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+    transform-origin: left center;
+    transform: rotate(-14deg);
+    opacity: 0.85;
+    animation: pulse-line 2.6s ease-in-out infinite;
+  }
+  @keyframes pulse-line {
+    0%, 100% { opacity: 0.15; }
+    48% { opacity: 0.15; }
+    52% { opacity: 0.9; }
+    62% { opacity: 0.15; }
+  }
+
+  .actor {
+    position: absolute;
+    border-radius: 50%;
+  }
+  .actor.player {
+    width: 40px; height: 40px;
+    left: 88px; top: 156px;
+    background: var(--player);
+    box-shadow: 0 0 0 3px rgba(111,143,122,0.2);
+  }
+  .actor.enemy {
+    width: 34px; height: 34px;
+    left: 296px; top: 100px;
+    background: var(--danger);
+    animation: hit-flash 2.6s ease-in-out infinite;
+  }
+  @keyframes hit-flash {
+    0%, 100% { filter: brightness(1); box-shadow: none; }
+    50% { filter: brightness(1); box-shadow: none; }
+    53% { filter: brightness(2.4); box-shadow: 0 0 0 4px rgba(236,227,208,0.55); }
+    58% { filter: brightness(1); box-shadow: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .attack-line, .actor.enemy, .dmg-float { animation: none !important; }
+    .attack-line { opacity: 0.7; }
+  }
+
+  .enemy-hp {
+    position: absolute;
+    left: 293px; top: 90px;
+    width: 40px; height: 5px;
+    border-radius: 3px;
+    background: var(--road-fill);
+    border: 1px solid var(--border-hair);
+    overflow: hidden;
+  }
+  .enemy-hp .fill {
+    height: 100%;
+    width: 100%;
+    background: var(--danger);
+    animation: hp-drop 2.6s ease-in-out infinite;
+  }
+  @keyframes hp-drop {
+    0%, 50% { width: 100%; }
+    53%, 100% { width: 64%; }
+  }
+
+  .dmg-float {
+    position: absolute;
+    left: 300px; top: 78px;
+    font-family: 'SF Mono', monospace;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+    opacity: 0;
+    animation: float-up 2.6s ease-out infinite;
+  }
+  @keyframes float-up {
+    0%, 50% { opacity: 0; transform: translateY(0); }
+    54% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-26px); }
+  }
+
+  .combat-callouts {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .callout {
+    position: absolute;
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .callout .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }
+  .callout.c1 { left: 78px; top: 210px; }
+  .callout.c2 { left: 250px; top: 60px; }
+  .callout.c3 { left: 344px; top: 100px; }
+  .callout.c4 { left: 130px; top: 140px; }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-faint);
+    padding-top: 20px;
+    border-top: 1px solid var(--border-hair);
+  }
+
+  @media (max-width: 640px) {
+    .combat-mock { height: 240px; }
+  }
+</style>
+
+<div class="page">
+  <header class="hero">
+    <div class="eyebrow">Elysium · companion de design</div>
+    <h1 class="k-title">Zonas, Combate e Movimento</h1>
+    <p>Diagrama de apoio da spec de jogabilidade — como o mapa se divide em zonas, o que muda no feedback de combate, e como funciona o sprint. Complementa o diagrama da árvore de habilidades.</p>
+    <div class="path">docs/design/2026-07-18-zonas-combate-movimento.md</div>
+  </header>
+
+  <section>
+    <div class="section-head">
+      <span class="num">01</span>
+      <h2>O mapa vira 2 zonas de verdade</h2>
+    </div>
+    <div class="panel map-wrap">
+      <div class="map-svg-frame">
+        <svg viewBox="-220 -90 2360 1260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagrama do mapa dividido em zona norte e zona sul pela estrada">
+          <defs>
+            <clipPath id="screen">
+              <rect x="0" y="0" width="1920" height="1080" />
+            </clipPath>
+          </defs>
+
+          <rect x="-220" y="-90" width="2360" height="1260" fill="var(--bg)" />
+
+          <g clip-path="url(#screen)">
+            <path d="M -220,-90 L -220,540 C 250,540 300,860 620,820 C 940,780 700,300 1020,260 C 1340,220 1120,880 1460,860 C 1680,846 1750,600 2140,460 L 2140,-90 Z" fill="var(--zone-north)" />
+            <path d="M -220,1170 L -220,540 C 250,540 300,860 620,820 C 940,780 700,300 1020,260 C 1340,220 1120,880 1460,860 C 1680,846 1750,600 2140,460 L 2140,1170 Z" fill="var(--zone-south)" />
+
+            <circle cx="-90" cy="230" r="200" fill="var(--purple)" opacity="0.07" />
+            <circle cx="740" cy="30" r="220" fill="var(--gold)" opacity="0.07" />
+            <circle cx="1480" cy="330" r="210" fill="var(--steel)" opacity="0.07" />
+
+            <circle cx="900" cy="430" r="180" fill="none" stroke="var(--ink-faint)" stroke-width="2" stroke-dasharray="6 6" opacity="0.55" />
+          </g>
+
+          <rect x="0" y="0" width="1920" height="1080" fill="none" stroke="var(--border-faint)" stroke-width="3" stroke-dasharray="14 10" />
+
+          <path d="M -220,540 C 250,540 300,860 620,820 C 940,780 700,300 1020,260 C 1340,220 1120,880 1460,860 C 1680,846 1750,600 2140,460"
+                fill="none" stroke="var(--road-fill)" stroke-width="46" stroke-linecap="round" />
+          <path d="M -220,540 C 250,540 300,860 620,820 C 940,780 700,300 1020,260 C 1340,220 1120,880 1460,860 C 1680,846 1750,600 2140,460"
+                fill="none" stroke="var(--road-dash)" stroke-width="2" stroke-dasharray="18 16" opacity="0.7" />
+
+          <g font-family="Georgia, serif" font-weight="700" letter-spacing="6">
+            <text x="960" y="140" text-anchor="middle" fill="var(--steel)" font-size="30" opacity="0.55">ZONA NORTE</text>
+            <text x="960" y="990" text-anchor="middle" fill="var(--player)" font-size="30" opacity="0.55">ZONA SUL</text>
+          </g>
+
+          <circle cx="900" cy="430" r="16" fill="var(--ink)" stroke="var(--gold)" stroke-width="3" />
+          <text x="900" y="392" text-anchor="middle" fill="var(--gold)" font-size="17" font-family="Georgia, serif" font-weight="700">zona neutra (nv. 1)</text>
+
+          <circle cx="-140" cy="540" r="14" fill="var(--gold)" />
+          <text x="-140" y="586" text-anchor="middle" fill="var(--ink-faint)" font-size="16">spawn (fora da tela)</text>
+
+          <circle cx="2080" cy="460" r="16" fill="var(--danger)" />
+          <text x="2080" y="416" text-anchor="middle" fill="var(--ink-faint)" font-size="16">vazamento (fora da tela)</text>
+
+          <text x="90" y="46" fill="var(--ink-faint)" font-size="15" letter-spacing="1">margem negativa →</text>
+          <text x="1830" y="46" text-anchor="end" fill="var(--ink-faint)" font-size="15" letter-spacing="1">← margem estendida</text>
+        </svg>
+      </div>
+      <div class="legend">
+        <div class="item"><span class="swatch" style="background:var(--zone-north)"></span> Zona Norte — Atena/Marte atravessam livre se nômades</div>
+        <div class="item"><span class="swatch" style="background:var(--zone-south)"></span> Zona Sul — Anúbis/Guan Yu/Odin ficam presos aqui se escolhida</div>
+        <div class="item"><span class="swatch circle" style="border:2px dashed var(--ink-faint)"></span> Zona neutra — clamp circular até o nível 2</div>
+        <div class="item"><span class="swatch" style="background:var(--road-fill)"></span> Estrada (mesmo traçado atual, só com margem fora da tela)</div>
+        <div class="item"><span class="swatch" style="border:2px dashed var(--border-faint)"></span> Borda visível da tela (1920×1080)</div>
+      </div>
+    </div>
+    <div class="note-row">
+      <div class="note-card">
+        <span class="k-label">Regra</span>
+        <p>A estrada nunca toca as bordas de cima/baixo — por isso já divide o mapa em exatamente 2 regiões, acima e abaixo da curva. Não precisa redesenhar o traçado.</p>
+      </div>
+      <div class="note-card">
+        <span class="k-label">Escolha</span>
+        <p>A zona (norte/sul) é escolhida junto com o deus, na tela de nível 2 — antes disso o jogador fica preso na zona neutra central.</p>
+      </div>
+      <div class="note-card">
+        <span class="k-label">Clamp</span>
+        <p>Depois da escolha, o clamp passa de "raio a partir de um ponto" para "lado da curva" — nômades podem atravessar, os demais ficam presos no seu lado.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="num">02</span>
+      <h2>Sprint + stamina</h2>
+    </div>
+    <div class="panel hud-mock">
+      <div class="hud-card">
+        <div class="bar-row">
+          <div class="bar-label"><span class="name">Vida</span><span class="value">100/100</span></div>
+          <div class="bar-track"><div class="bar-fill hp"></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label"><span class="name">Stamina</span><span class="value">novo</span></div>
+          <div class="bar-track"><div class="bar-fill stamina"></div></div>
+        </div>
+        <div class="sprint-caption">
+          <span class="key-chip">SHIFT</span>
+          <span>segura pra correr 2× — gasta stamina, solta pra regenerar</span>
+        </div>
+      </div>
+      <div class="note-card" style="flex: 1 1 260px;">
+        <span class="k-label">Comportamento</span>
+        <p>Stamina começa em 100, só é consumida durante o sprint. Regenera sempre que Shift não está pressionado — parado ou andando normal, tanto faz. Ao zerar, o sprint desliga sozinho até regenerar de novo.</p>
+      </div>
+      <div class="note-card" style="flex: 1 1 260px;">
+        <span class="k-label">Backlog (fora desta spec)</span>
+        <p>Skill de stamina na árvore de habilidades, e auto-scaling de todos os atributos por nível (ex: +10%), variável por afinidade de deus — entra num brainstorming futuro dedicado.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="num">03</span>
+      <h2>Feedback de combate</h2>
+    </div>
+    <div class="panel">
+      <div class="combat-mock">
+        <div class="attack-line"></div>
+        <div class="actor player"></div>
+        <div class="actor enemy"></div>
+        <div class="enemy-hp"><div class="fill"></div></div>
+        <div class="dmg-float">-14</div>
+        <div class="combat-callouts">
+          <div class="callout c1"><span class="dot"></span>jogador</div>
+          <div class="callout c2"><span class="dot"></span>barra de vida (só aparece com dano)</div>
+          <div class="callout c3"><span class="dot"></span>número flutuante</div>
+          <div class="callout c4"><span class="dot"></span>linha de ataque saindo do jogador</div>
+        </div>
+      </div>
+      <div class="legend" style="margin-top: 16px;">
+        <div class="item"><span class="swatch circle" style="background:var(--player)"></span> Jogador</div>
+        <div class="item"><span class="swatch circle" style="background:var(--danger)"></span> Inimigo (pisca no impacto)</div>
+        <div class="item"><span class="swatch" style="background:var(--gold)"></span> Linha de ataque (pulsa no disparo)</div>
+      </div>
+    </div>
+    <div class="note-row">
+      <div class="note-card">
+        <span class="k-label">01 · Barra de vida</span>
+        <p>Some com vida cheia, só aparece depois do primeiro hit — evita poluir a tela com inimigo saudável.</p>
+      </div>
+      <div class="note-card">
+        <span class="k-label">02 · Dano flutuante</span>
+        <p>Texto com o valor real de dano nasce no ponto de impacto e sobe/some, padrão de ARPG.</p>
+      </div>
+      <div class="note-card">
+        <span class="k-label">03 · Flash no acerto</span>
+        <p>O inimigo pisca por poucos frames no instante do hit — feedback imediato sem precisar ler número.</p>
+      </div>
+      <div class="note-card">
+        <span class="k-label">04 · Origem do ataque</span>
+        <p>Linha/partícula rápida do jogador até o alvo — vale tanto pro tiro atual quanto pro melee que entra na spec de armas.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>Companion visual do brainstorming de 18/07/2026 · não substitui o doc de design</footer>
+</div>

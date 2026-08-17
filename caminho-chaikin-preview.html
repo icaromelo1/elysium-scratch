@@ -1,0 +1,107 @@
+<title>Elysium — Caminho: zigue-zague vs Chaikin</title>
+<style>
+  :root {
+    --bg: #f2e8d5;
+    --bg-soft: #ece0c8;
+    --panel: #fbf4e4;
+    --ink: #3a2e22;
+    --ink-muted: #6b5d4a;
+    --ink-faint: #a1907a;
+    --terracotta: #c1592f;
+    --gold: #b5872a;
+    --border: rgba(58, 46, 34, 0.14);
+    --border-strong: rgba(58, 46, 34, 0.28);
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --bg: #1c1712; --bg-soft: #241d16; --panel: #2a221a;
+    --ink: #ecdfc8; --ink-muted: #b3a488; --ink-faint: #7c6f5a;
+    --border: rgba(236, 223, 200, 0.14); --border-strong: rgba(236, 223, 200, 0.26);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c1712; --bg-soft: #241d16; --panel: #2a221a;
+      --ink: #ecdfc8; --ink-muted: #b3a488; --ink-faint: #7c6f5a;
+      --border: rgba(236, 223, 200, 0.14); --border-strong: rgba(236, 223, 200, 0.26);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg);
+    background-image: radial-gradient(ellipse at 20% 0%, var(--bg-soft) 0%, transparent 60%);
+    color: var(--ink); font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    padding: 56px 20px 90px;
+  }
+  .page { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+  header.hero { text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  header.hero .eyebrow { font-family: 'Futura', 'Century Gothic', sans-serif; letter-spacing: 5px; color: var(--terracotta); font-size: 12px; text-transform: uppercase; }
+  header.hero h1 { font-size: clamp(26px, 4.5vw, 40px); margin: 0; font-weight: 600; }
+  header.hero p { max-width: 640px; color: var(--ink-muted); line-height: 1.7; margin: 0; font-size: 14.5px; font-family: 'Futura', 'Century Gothic', sans-serif; }
+
+  .panel { background: var(--panel); border: 1px solid var(--border-strong); border-radius: 14px; padding: 24px; box-shadow: 0 12px 30px rgba(58, 46, 34, 0.08); }
+  .panel svg { display: block; width: 100%; height: auto; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; margin-top: 16px; font-family: 'Futura', 'Century Gothic', sans-serif; font-size: 12.5px; color: var(--ink-muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { width: 22px; height: 3px; border-radius: 2px; display: inline-block; }
+
+  .stat-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+  .stat { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 10px; padding: 10px 18px; text-align: center; font-family: 'Futura', 'Century Gothic', sans-serif; }
+  .stat .num { font-size: 20px; font-weight: 700; color: var(--terracotta); font-family: 'Iowan Old Style', Georgia, serif; }
+  .stat .label { font-size: 10.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+  .note { font-family: 'Futura', 'Century Gothic', sans-serif; font-size: 12.5px; color: var(--ink-faint); text-align: center; max-width: 700px; margin: 0 auto; line-height: 1.6; }
+
+  footer { text-align: center; font-family: 'Futura', 'Century Gothic', sans-serif; font-size: 12px; color: var(--ink-faint); padding-top: 24px; border-top: 1px solid var(--border); }
+</style>
+
+<div class="page">
+  <header class="hero">
+    <div class="eyebrow">Elysium · preview antes de mudar o movimento dos inimigos</div>
+    <h1>Zigue-zague vs Chaikin</h1>
+    <p>Traçado real dos 9 waypoints do jogo. Comparação entre o caminho atual (retas + canto arredondado) e duas intensidades de suavização de Chaikin — a mesma curva usada tanto pro desenho quanto pro movimento dos inimigos.</p>
+  </header>
+
+  <section class="panel">
+    <svg viewBox="-40 200 2000 700" xmlns="http://www.w3.org/2000/svg">
+      <!-- grid guide -->
+      <rect x="-40" y="200" width="2000" height="700" fill="none" />
+
+      <!-- original zigzag, dashed, behind -->
+      <path d="M 0.0,540.0 L 310.0,760.0 L 620.0,820.0 L 860.0,520.0 L 1020.0,260.0 L 1220.0,480.0 L 1460.0,860.0 L 1700.0,640.0 L 1920.0,460.0"
+        fill="none" stroke="var(--ink-faint)" stroke-width="3" stroke-dasharray="10 8" opacity="0.55" />
+
+      <!-- chaikin 3 iterations, faint wide -->
+      <path d="M 0.0,540.0 L 4.8,543.4 L 14.5,550.3 L 29.1,560.6 L 48.4,574.4 L 72.7,591.6 L 101.7,612.2 L 135.6,636.3 L 174.4,663.8 L 213.1,688.8 L 251.9,711.3 L 290.6,731.3 L 329.4,748.8 L 368.1,763.8 L 406.9,776.3 L 445.6,786.3 L 484.4,793.8 L 522.0,795.6 L 558.6,791.9 L 594.1,782.5 L 628.4,767.5 L 661.7,746.9 L 693.9,720.6 L 725.0,688.8 L 755.0,651.3 L 783.8,614.4 L 811.3,578.1 L 837.5,542.5 L 862.5,507.5 L 886.3,473.1 L 908.8,439.4 L 930.0,406.3 L 950.0,373.8 L 970.6,348.8 L 991.9,331.3 L 1013.8,321.3 L 1036.3,318.8 L 1059.4,323.8 L 1083.1,336.3 L 1107.5,356.3 L 1132.5,383.8 L 1158.1,413.8 L 1184.4,446.3 L 1211.3,481.3 L 1238.8,518.8 L 1266.9,558.8 L 1295.6,601.3 L 1325.0,646.3 L 1355.0,693.8 L 1385.0,731.9 L 1415.0,760.6 L 1445.0,780.0 L 1475.0,790.0 L 1505.0,790.6 L 1535.0,781.9 L 1565.0,763.8 L 1595.0,736.3 L 1624.7,709.4 L 1654.1,683.1 L 1683.1,657.5 L 1711.9,632.5 L 1740.3,608.1 L 1768.4,584.4 L 1796.3,561.3 L 1823.8,538.8 L 1847.8,519.1 L 1868.4,502.2 L 1885.6,488.1 L 1899.4,476.9 L 1909.7,468.4 L 1916.6,462.8 L 1920.0,460.0"
+        fill="none" stroke="var(--gold)" stroke-width="3" opacity="0.4" stroke-linecap="round" stroke-linejoin="round" />
+
+      <!-- chaikin 2 iterations, main recommended -->
+      <path d="M 0.0,540.0 L 19.4,553.8 L 58.1,581.3 L 116.3,622.5 L 193.8,677.5 L 271.3,722.5 L 348.8,757.5 L 426.3,782.5 L 503.8,797.5 L 576.9,790.0 L 645.6,760.0 L 710.0,707.5 L 770.0,632.5 L 825.0,560.0 L 875.0,490.0 L 920.0,422.5 L 960.0,357.5 L 1002.5,322.5 L 1047.5,317.5 L 1095.0,342.5 L 1145.0,397.5 L 1197.5,462.5 L 1252.5,537.5 L 1310.0,622.5 L 1370.0,717.5 L 1430.0,775.0 L 1490.0,795.0 L 1550.0,777.5 L 1610.0,722.5 L 1668.8,670.0 L 1726.3,620.0 L 1782.5,572.5 L 1837.5,527.5 L 1878.8,493.8 L 1906.3,471.3 L 1920.0,460.0"
+        fill="none" stroke="var(--terracotta)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+
+      <!-- original waypoint markers -->
+      <g fill="var(--ink)" opacity="0.7">
+        <circle cx="0" cy="540" r="9" /><circle cx="310" cy="760" r="9" /><circle cx="620" cy="820" r="9" />
+        <circle cx="860" cy="520" r="9" /><circle cx="1020" cy="260" r="9" /><circle cx="1220" cy="480" r="9" />
+        <circle cx="1460" cy="860" r="9" /><circle cx="1700" cy="640" r="9" /><circle cx="1920" cy="460" r="9" />
+      </g>
+    </svg>
+
+    <div class="legend">
+      <span><span class="swatch" style="background: var(--ink-faint); opacity: 0.55; border-top: 2px dashed var(--ink-faint); height:0;"></span>zigue-zague atual (9 waypoints)</span>
+      <span><span class="swatch" style="background: var(--terracotta);"></span>Chaikin, 2 iterações (recomendado)</span>
+      <span><span class="swatch" style="background: var(--gold); opacity: 0.4;"></span>Chaikin, 3 iterações (mais suave ainda)</span>
+      <span>● waypoints originais</span>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat"><div class="num">9 → 36</div><div class="label">pontos, 2 iterações</div></div>
+      <div class="stat"><div class="num">9 → 72</div><div class="label">pontos, 3 iterações</div></div>
+      <div class="stat"><div class="num">0%</div><div class="label">chance de estourar o envelope</div></div>
+    </div>
+  </section>
+
+  <p class="note">A curva nunca sai do "envelope convexo" formado pelos waypoints originais (garantia matemática do algoritmo de Chaikin) — diferente do Catmull-Rom que testamos antes, que podia estourar pra fora em ângulos fechados. Os inimigos passariam a andar pela curva vermelha (2 iterações) em vez das retas cinzas tracejadas.</p>
+
+  <footer>Preview gerado a partir dos WAYPOINTS reais de src/game/mapDef.ts · nenhuma mudança de código aplicada ainda</footer>
+</div>

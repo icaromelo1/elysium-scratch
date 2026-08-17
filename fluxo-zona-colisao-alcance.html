@@ -1,0 +1,426 @@
+<title>Elysium — Fluxo de Zona, Colisão e Alcance</title>
+<style>
+  :root {
+    --bg: #0d0b08;
+    --bg-soft: #17130d;
+    --panel: rgba(30, 25, 18, 0.9);
+    --panel-solid: #1c1811;
+    --ink: #ece3d0;
+    --ink-muted: #9a9384;
+    --ink-dim: #b7b0a0;
+    --ink-faint: #6d6656;
+    --gold: #c9a227;
+    --danger: #ad5a3c;
+    --player: #6f8f7a;
+    --purple: #8f7aa8;
+    --steel: #7a8fa3;
+    --road-fill: #332c22;
+    --road-dash: #4a4132;
+    --border-gold: rgba(201, 162, 39, 0.32);
+    --border-danger: rgba(173, 90, 60, 0.4);
+    --border-faint: rgba(255, 255, 255, 0.14);
+    --border-hair: rgba(255, 255, 255, 0.06);
+    --zone-north: rgba(122, 143, 163, 0.16);
+    --zone-south: rgba(111, 143, 122, 0.16);
+    color-scheme: dark light;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #f4efe3;
+    --bg-soft: #ece4d2;
+    --panel: rgba(255, 251, 240, 0.92);
+    --panel-solid: #fffbf0;
+    --ink: #2a2318;
+    --ink-muted: #6b6151;
+    --ink-dim: #4f4636;
+    --ink-faint: #948a76;
+    --road-fill: #d8cbab;
+    --road-dash: #c3b28a;
+    --border-gold: rgba(150, 116, 20, 0.35);
+    --border-danger: rgba(148, 68, 44, 0.4);
+    --border-faint: rgba(0, 0, 0, 0.12);
+    --border-hair: rgba(0, 0, 0, 0.06);
+    --zone-north: rgba(90, 115, 138, 0.18);
+    --zone-south: rgba(84, 115, 95, 0.2);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f4efe3;
+      --bg-soft: #ece4d2;
+      --panel: rgba(255, 251, 240, 0.92);
+      --panel-solid: #fffbf0;
+      --ink: #2a2318;
+      --ink-muted: #6b6151;
+      --ink-dim: #4f4636;
+      --ink-faint: #948a76;
+      --road-fill: #d8cbab;
+      --road-dash: #c3b28a;
+      --border-gold: rgba(150, 116, 20, 0.35);
+      --border-danger: rgba(148, 68, 44, 0.4);
+      --border-faint: rgba(0, 0, 0, 0.12);
+      --border-hair: rgba(0, 0, 0, 0.06);
+      --zone-north: rgba(90, 115, 138, 0.18);
+      --zone-south: rgba(84, 115, 95, 0.2);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: radial-gradient(ellipse at 50% -10%, var(--bg-soft) 0%, var(--bg) 60%);
+    color: var(--ink);
+    font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+    padding: 48px 20px 80px;
+  }
+
+  .page { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+
+  header.hero {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+  header.hero .eyebrow {
+    font-family: Georgia, 'Times New Roman', serif;
+    letter-spacing: 4px;
+    color: var(--gold);
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+  header.hero h1 {
+    font-size: clamp(30px, 5vw, 46px);
+    margin: 0;
+    letter-spacing: 1px;
+    background: linear-gradient(180deg, var(--ink), var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  header.hero p {
+    max-width: 640px;
+    color: var(--ink-muted);
+    line-height: 1.6;
+    margin: 0;
+    font-size: 15px;
+  }
+  header.hero .path {
+    font-family: 'SF Mono', 'Cascadia Code', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    background: var(--panel-solid);
+    border: 1px solid var(--border-hair);
+    border-radius: 6px;
+    padding: 6px 12px;
+  }
+
+  section { display: flex; flex-direction: column; gap: 18px; }
+  section > .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    border-bottom: 1px solid var(--border-hair);
+    padding-bottom: 10px;
+  }
+  section > .section-head h2 { font-size: 20px; margin: 0; }
+  section > .section-head .num { font-family: Georgia, serif; color: var(--gold); font-size: 14px; opacity: 0.8; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border-gold);
+    border-radius: 10px;
+    padding: 24px;
+  }
+
+  .note-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .note-card {
+    background: var(--panel-solid);
+    border: 1px solid var(--border-hair);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .note-card .k-label {
+    font-family: Georgia, serif;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+  .note-card p { margin: 0; font-size: 13px; color: var(--ink-dim); line-height: 1.5; }
+
+  /* --- zone select mockup --- */
+  .zoneselect-mock {
+    position: relative;
+    height: 340px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border-faint);
+    background: var(--bg);
+  }
+  .zoneselect-mock .world {
+    position: absolute;
+    inset: 0;
+  }
+  .zoneselect-mock .world svg { width: 100%; height: 100%; display: block; }
+  .zoneselect-mock .dim {
+    position: absolute;
+    inset: 0;
+    background: rgba(13, 11, 8, 0.34);
+  }
+  .zoneselect-region {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .zoneselect-region.north { top: 0; height: 50%; background: var(--zone-north); }
+  .zoneselect-region.south { top: 50%; height: 50%; background: var(--zone-south); }
+  .zoneselect-region:hover { filter: brightness(1.35); }
+  .zoneselect-region .label {
+    font-family: Georgia, serif;
+    font-weight: 700;
+    letter-spacing: 5px;
+    font-size: 22px;
+    padding: 10px 22px;
+    border-radius: 8px;
+    background: var(--panel-solid);
+    border: 1px solid var(--border-gold);
+  }
+  .zoneselect-region.north .label { color: var(--steel); }
+  .zoneselect-region.south .label { color: var(--player); }
+  .zoneselect-heading {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .zoneselect-heading .lv {
+    font-family: Georgia, serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--gold);
+  }
+  .zoneselect-heading .ti {
+    font-family: Georgia, serif;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  /* --- collision before/after --- */
+  .collision-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  @media (max-width: 700px) { .collision-compare { grid-template-columns: 1fr; } }
+  .collision-card {
+    background: var(--panel-solid);
+    border: 1px solid var(--border-hair);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .collision-card .tag {
+    display: inline-block;
+    font-family: Georgia, serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 3px 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+  .collision-card.before .tag { background: rgba(173,90,60,0.18); color: var(--danger); border: 1px solid var(--border-danger); }
+  .collision-card.after .tag { background: rgba(111,143,122,0.18); color: var(--player); border: 1px solid rgba(111,143,122,0.4); }
+  .collision-card svg { width: 100%; display: block; }
+  .collision-card p { font-size: 12.5px; color: var(--ink-dim); margin: 10px 0 0; line-height: 1.5; }
+
+  /* --- range indicator mockup --- */
+  .range-mock {
+    position: relative;
+    height: 260px;
+    background: var(--bg);
+    border: 1px solid var(--border-faint);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .range-ring {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 2px dashed rgba(236, 227, 208, 0.4);
+  }
+  .range-player {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--player);
+    z-index: 2;
+    box-shadow: 0 0 0 4px rgba(111,143,122,0.18);
+  }
+  .range-enemy {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--danger);
+  }
+  .range-enemy.in { top: 40px; left: 210px; }
+  .range-enemy.out { top: 30px; right: 40px; opacity: 0.4; }
+  .range-callout {
+    position: absolute;
+    font-size: 11px;
+    color: var(--ink-faint);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .range-callout .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }
+  .range-callout.c1 { bottom: 24px; left: 50%; transform: translateX(-50%); }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-faint);
+    padding-top: 20px;
+    border-top: 1px solid var(--border-hair);
+  }
+</style>
+
+<div class="page">
+  <header class="hero">
+    <div class="eyebrow">Elysium · companion de design</div>
+    <h1>Fluxo de Zona, Colisão e Alcance</h1>
+    <p>Diagrama de apoio da spec de refinamento pós-playtest — tela de escolha de zona sobre o mapa real, colisão sólida com a estrada, e o anel de alcance do jogador.</p>
+    <div class="path">docs/design/2026-07-18-fluxo-zona-colisao-alcance.md</div>
+  </header>
+
+  <section>
+    <div class="section-head">
+      <span class="num">01</span>
+      <h2>Escolha de zona — depois do deus, sobre o mapa real</h2>
+    </div>
+    <div class="panel">
+      <div class="zoneselect-mock">
+        <div class="world">
+          <svg viewBox="-220 -90 2360 1260" xmlns="http://www.w3.org/2000/svg">
+            <rect x="-220" y="-90" width="2360" height="1260" fill="var(--bg)" />
+            <circle cx="-90" cy="230" r="200" fill="var(--purple)" opacity="0.08" />
+            <circle cx="740" cy="30" r="220" fill="var(--gold)" opacity="0.08" />
+            <circle cx="1480" cy="330" r="210" fill="var(--steel)" opacity="0.08" />
+            <path d="M -220,540 C 250,540 300,860 620,820 C 940,780 700,300 1020,260 C 1340,220 1120,880 1460,860 C 1680,846 1750,600 2140,460"
+                  fill="none" stroke="var(--road-fill)" stroke-width="46" stroke-linecap="round" />
+            <path d="M -220,540 C 250,540 300,860 620,820 C 940,780 700,300 1020,260 C 1340,220 1120,880 1460,860 C 1680,846 1750,600 2140,460"
+                  fill="none" stroke="var(--road-dash)" stroke-width="2" stroke-dasharray="18 16" opacity="0.7" />
+          </svg>
+        </div>
+        <div class="dim"></div>
+        <div class="zoneselect-heading">
+          <div class="lv">NÍVEL 2 · ATENA ESCOLHIDA</div>
+          <div class="ti">Escolha sua zona</div>
+        </div>
+        <div class="zoneselect-region north"><span class="label">NORTE</span></div>
+        <div class="zoneselect-region south"><span class="label">SUL</span></div>
+      </div>
+      <div class="note-row" style="margin-top:16px;">
+        <div class="note-card">
+          <span class="k-label">Fluxo</span>
+          <p><code>classselect</code> → <code>zoneselect</code> → <code>playing</code>. O toggle Norte/Sul sai do ClassSelect; a escolha vira essa tela dedicada, aberta só depois do deus confirmado.</p>
+        </div>
+        <div class="note-card">
+          <span class="k-label">Interação</span>
+          <p>Clicar em qualquer ponto da metade desejada já escolhe — sem botão de confirmar separado. O mapa real (canvas do jogo) fica visível por trás, só com um dim leve.</p>
+        </div>
+        <div class="note-card">
+          <span class="k-label">Câmera</span>
+          <p>Ao abrir essa tela, centraliza no meio geométrico do mundo — garante que a área clicável bata exatamente com o que está desenhado.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="num">02</span>
+      <h2>Colisão sólida com a estrada</h2>
+    </div>
+    <div class="panel">
+      <div class="collision-compare">
+        <div class="collision-card before">
+          <span class="tag">ANTES</span>
+          <svg viewBox="0 0 380 140">
+            <rect width="380" height="140" fill="var(--bg)" />
+            <line x1="0" y1="70" x2="380" y2="70" stroke="var(--road-fill)" stroke-width="46" />
+            <line x1="0" y1="70" x2="380" y2="70" stroke="var(--road-dash)" stroke-width="2" stroke-dasharray="10 8" />
+            <line x1="0" y1="46" x2="380" y2="46" stroke="var(--danger)" stroke-width="1.5" stroke-dasharray="4 4" />
+            <circle cx="190" cy="34" r="16" fill="var(--player)" opacity="0.9" />
+            <text x="200" y="60" fill="var(--ink-faint)" font-size="11">margem fixa: 24px (sobrepõe o asfalto)</text>
+          </svg>
+          <p>Clamp usava 24px fixos a partir do centro da via — o jogador conseguia sobrepor visualmente o asfalto de 46px.</p>
+        </div>
+        <div class="collision-card after">
+          <span class="tag">DEPOIS</span>
+          <svg viewBox="0 0 380 140">
+            <rect width="380" height="140" fill="var(--bg)" />
+            <line x1="0" y1="70" x2="380" y2="70" stroke="var(--road-fill)" stroke-width="46" />
+            <line x1="0" y1="70" x2="380" y2="70" stroke="var(--road-dash)" stroke-width="2" stroke-dasharray="10 8" />
+            <line x1="0" y1="31" x2="380" y2="31" stroke="var(--player)" stroke-width="1.5" stroke-dasharray="4 4" />
+            <circle cx="190" cy="15" r="16" fill="var(--player)" opacity="0.9" />
+            <text x="200" y="60" fill="var(--ink-faint)" font-size="11">ROAD_WIDTH/2 + raio do jogador</text>
+          </svg>
+          <p>Margem passa a ser metade da largura real do asfalto + o raio do jogador — bloqueio total, sem sobreposição visual.</p>
+        </div>
+      </div>
+      <div class="note-row" style="margin-top:16px;">
+        <div class="note-card">
+          <span class="k-label">Body-block (backlog)</span>
+          <p>Arquétipo Sentinela (spec de armas) vai liberar atravessar a estrada no futuro — por enquanto o bloqueio é total, sem exceção.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="num">03</span>
+      <h2>Anel de alcance</h2>
+    </div>
+    <div class="panel">
+      <div class="range-mock">
+        <div class="range-ring"></div>
+        <div class="range-player"></div>
+        <div class="range-enemy in"></div>
+        <div class="range-enemy out"></div>
+        <div class="range-callout c1"><span class="dot"></span>raio = mesmo "range" que o combate usa pra mirar</div>
+      </div>
+      <div class="note-row" style="margin-top:16px;">
+        <div class="note-card">
+          <span class="k-label">Sempre visível</span>
+          <p>Sem toggle — desenhado durante todo o gameplay, só pro próprio jogador (renderização local, não sincronizável).</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Companion visual do brainstorming de 18/07/2026 · não substitui o doc de design</footer>
+</div>

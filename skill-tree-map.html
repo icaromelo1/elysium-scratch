@@ -1,0 +1,526 @@
+<title>Elysium — Árvore de Combate</title>
+<style>
+  :root {
+    --bg: #0d0b08;
+    --bg-soft: #17130d;
+    --panel: #1c1811;
+    --panel-2: #201b13;
+    --ink: #ece3d0;
+    --ink-muted: #9a9384;
+    --ink-faint: #6d6656;
+    --gold: #c9a227;
+    --danger: #ad5a3c;
+    --player: #6f8f7a;
+    --steel: #7a8fa3;
+    --purple: #8f7aa8;
+    --line: rgba(201, 162, 39, 0.32);
+    --line-soft: rgba(236, 227, 208, 0.14);
+    --serif: Cambria, "Hoefler Text", "Times New Roman", serif;
+    --sans: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --mono: "SF Mono", "Cascadia Code", ui-monospace, monospace;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #f3ede0;
+    --bg-soft: #ece3d0;
+    --panel: #fbf7ee;
+    --panel-2: #f4eddc;
+    --ink: #241d12;
+    --ink-muted: #6c6350;
+    --ink-faint: #a89c82;
+    --line: rgba(154, 114, 15, 0.35);
+    --line-soft: rgba(36, 29, 18, 0.12);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f3ede0;
+      --bg-soft: #ece3d0;
+      --panel: #fbf7ee;
+      --panel-2: #f4eddc;
+      --ink: #241d12;
+      --ink-muted: #6c6350;
+      --ink-faint: #a89c82;
+      --line: rgba(154, 114, 15, 0.35);
+      --line-soft: rgba(36, 29, 18, 0.12);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, color-mix(in srgb, var(--gold) 10%, transparent), transparent),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    padding: clamp(24px, 5vw, 64px) 20px 96px;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; }
+
+  header {
+    text-align: center;
+    margin-bottom: clamp(40px, 7vw, 72px);
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    font-size: clamp(32px, 6vw, 52px);
+    margin: 10px 0 6px;
+    text-wrap: balance;
+    background: linear-gradient(180deg, var(--ink), var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .sub {
+    color: var(--ink-muted);
+    font-size: 15px;
+    max-width: 46ch;
+    margin: 0 auto;
+    line-height: 1.55;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px 22px;
+    margin-top: 22px;
+    font-size: 12.5px;
+    color: var(--ink-muted);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .swatch { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+
+  /* ---- spine tiers (nv1 -> nv5, single column) ---- */
+  .spine {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .tier {
+    width: 100%;
+    max-width: 560px;
+    position: relative;
+  }
+
+  .connector {
+    width: 2px;
+    height: 34px;
+    background: linear-gradient(var(--line-soft), var(--line));
+    margin: 0 auto;
+  }
+
+  .node-card {
+    background: var(--panel);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    padding: 16px 20px;
+    text-align: center;
+  }
+
+  .node-level {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .node-title {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+
+  .node-desc {
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  /* gods row (nv2) */
+  .gods-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    max-width: 760px;
+    width: 100%;
+  }
+  .god-card {
+    background: var(--panel);
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+    border: 1px solid var(--god-color, var(--line-soft));
+  }
+  .god-name {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--god-color, var(--ink));
+  }
+  .god-pantheon {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    margin-top: 2px;
+  }
+
+  /* ---- fork gates ---- */
+  .gate {
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 10px 0 2px;
+  }
+
+  .fan {
+    display: grid;
+    gap: 14px;
+    width: 100%;
+    position: relative;
+    padding-top: 26px;
+  }
+
+  .fan::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 8%;
+    right: 8%;
+    height: 26px;
+    border-top: 2px solid var(--line);
+    border-radius: 999px 999px 0 0;
+  }
+
+  .fan-2 { grid-template-columns: repeat(2, 1fr); }
+  .fan-4 { grid-template-columns: repeat(4, 1fr); }
+  .fan-12 { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); padding-top: 30px; }
+
+  .branch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .branch::before {
+    content: "";
+    width: 2px;
+    height: 14px;
+    background: var(--line);
+  }
+
+  .branch-card {
+    background: var(--panel-2);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    padding: 10px 12px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .branch-label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .branch-note {
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 3px;
+  }
+
+  /* ---- archetype leaf cards (12 final) ---- */
+  .archetype {
+    background: var(--panel);
+    border-radius: 10px;
+    padding: 14px 12px 16px;
+    border: 1px solid var(--card-color, var(--line-soft));
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .archetype-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-faint);
+  }
+
+  .archetype-name {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--card-color, var(--ink));
+  }
+
+  .archetype-axes {
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    color: var(--ink-muted);
+  }
+
+  .archetype-theme {
+    font-size: 11.5px;
+    color: var(--ink-muted);
+    line-height: 1.4;
+    flex: 1;
+  }
+
+  .archetype-affinity {
+    font-size: 10.5px;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .cap {
+    max-width: 620px;
+    margin: 34px auto 0;
+    text-align: center;
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px 24px;
+  }
+  .cap .node-level { color: var(--gold); }
+  .cap .node-title { font-size: 22px; }
+
+  @media (max-width: 720px) {
+    .gods-row { grid-template-columns: repeat(3, 1fr); }
+    .fan-4 { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .tier, .fan, .cap { animation: rise 0.5s ease both; }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Elysium · Combate</div>
+    <h1>Árvore de Combate</h1>
+    <p class="sub">Todo o caminho possível do nível 1 ao 20 — dano físico/mágico × melee/projétil × papel, moldado pelo deus escolhido.</p>
+    <div class="legend">
+      <span><span class="swatch" style="background:#c9a227"></span>Atena · Grécia</span>
+      <span><span class="swatch" style="background:#ad5a3c"></span>Marte · Roma</span>
+      <span><span class="swatch" style="background:#6f8f7a"></span>Anúbis · Egito</span>
+      <span><span class="swatch" style="background:#7a8fa3"></span>Odin · Nórdico</span>
+      <span><span class="swatch" style="background:#8f7aa8"></span>Guan Yu · China</span>
+    </div>
+  </header>
+
+  <div class="spine">
+    <div class="tier">
+      <div class="node-card">
+        <div class="node-level">NÍVEL 1</div>
+        <div class="node-title">Melee Físico</div>
+        <div class="node-desc">Baseline fixo — alcance curto, ataque automático no inimigo mais próximo.</div>
+      </div>
+    </div>
+
+    <div class="connector"></div>
+
+    <div class="tier" style="max-width:760px">
+      <div class="node-level" style="text-align:center;margin-bottom:8px">NÍVEL 2 — ESCOLHER DEUS</div>
+      <div class="gods-row">
+        <div class="god-card" style="--god-color:#c9a227">
+          <div class="god-name">Atena</div>
+          <div class="god-pantheon">GRÉCIA</div>
+        </div>
+        <div class="god-card" style="--god-color:#ad5a3c">
+          <div class="god-name">Marte</div>
+          <div class="god-pantheon">ROMA</div>
+        </div>
+        <div class="god-card" style="--god-color:#6f8f7a">
+          <div class="god-name">Anúbis</div>
+          <div class="god-pantheon">EGITO</div>
+        </div>
+        <div class="god-card" style="--god-color:#7a8fa3">
+          <div class="god-name">Odin</div>
+          <div class="god-pantheon">NÓRDICO</div>
+        </div>
+        <div class="god-card" style="--god-color:#8f7aa8">
+          <div class="god-name">Guan Yu</div>
+          <div class="god-pantheon">CHINA</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector"></div>
+
+    <div class="tier">
+      <div class="node-card">
+        <div class="node-level">NÍVEL 3–5 · TIER 1</div>
+        <div class="node-title">Bônus genéricos</div>
+        <div class="node-desc">2–3 cards por nível: +dano, +vida máxima, +velocidade de ataque.</div>
+      </div>
+    </div>
+
+    <div class="connector"></div>
+    <div class="gate">Nível 6 — Fork: Alcance</div>
+
+    <div class="fan fan-2" style="max-width:520px">
+      <div class="branch">
+        <div class="branch-card"><div class="branch-label">Melee</div><div class="branch-note">baseline</div></div>
+      </div>
+      <div class="branch">
+        <div class="branch-card"><div class="branch-label">Projétil</div><div class="branch-note">desbloqueia AUTO / MANUAL·MOV / MANUAL·MOUSE</div></div>
+      </div>
+    </div>
+
+    <div class="connector"></div>
+
+    <div class="tier">
+      <div class="node-card">
+        <div class="node-level">NÍVEL 7–9 · TIER 2</div>
+        <div class="node-title">Bônus por alcance</div>
+        <div class="node-desc">Melee: alcance de swing, atordoamento · Projétil: perfuração, alvos extras.</div>
+      </div>
+    </div>
+
+    <div class="connector"></div>
+    <div class="gate">Nível 10 — Fork: Dano</div>
+
+    <div class="fan fan-4" style="max-width:760px">
+      <div class="branch"><div class="branch-card"><div class="branch-label">Físico · Melee</div></div></div>
+      <div class="branch"><div class="branch-card"><div class="branch-label">Mágico · Melee</div></div></div>
+      <div class="branch"><div class="branch-card"><div class="branch-label">Físico · Projétil</div></div></div>
+      <div class="branch"><div class="branch-card"><div class="branch-label">Mágico · Projétil</div></div></div>
+    </div>
+
+    <div class="connector"></div>
+
+    <div class="tier">
+      <div class="node-card">
+        <div class="node-level">NÍVEL 11–14 · TIER 3</div>
+        <div class="node-title">Primeiras habilidades ativas</div>
+        <div class="node-desc">Ex: Sangramento (físico-melee) · Queimadura (mágico-projétil).</div>
+      </div>
+    </div>
+
+    <div class="connector"></div>
+    <div class="gate">Nível 15 — Fork: Papel → 12 arquétipos</div>
+  </div>
+
+  <div class="fan fan-12" style="margin-top:8px">
+    <div class="archetype" style="--card-color:#ad5a3c">
+      <div class="archetype-num">01</div>
+      <div class="archetype-name">Guerreiro</div>
+      <div class="archetype-axes">FÍSICO · MELEE · OFENSIVO</div>
+      <div class="archetype-theme">Dano corpo a corpo cru, combos, crítico.</div>
+      <div class="archetype-affinity" style="color:#ad5a3c">Afinidade: Marte</div>
+    </div>
+    <div class="archetype" style="--card-color:#8f7aa8">
+      <div class="archetype-num">02</div>
+      <div class="archetype-name">Sentinela</div>
+      <div class="archetype-axes">FÍSICO · MELEE · DEFENSIVO</div>
+      <div class="archetype-theme">Tanque corpo a corpo, bloqueio, body-block.</div>
+      <div class="archetype-affinity" style="color:#8f7aa8">Afinidade: Guan Yu</div>
+    </div>
+    <div class="archetype">
+      <div class="archetype-num">03</div>
+      <div class="archetype-name">Chefe de Guerra</div>
+      <div class="archetype-axes">FÍSICO · MELEE · SUPORTE</div>
+      <div class="archetype-theme">Invoca aliados corpo a corpo, buffs de grupo.</div>
+      <div class="archetype-affinity" style="color:var(--ink-faint)">Sem afinidade fixa</div>
+    </div>
+    <div class="archetype">
+      <div class="archetype-num">04</div>
+      <div class="archetype-name">Caçador</div>
+      <div class="archetype-axes">FÍSICO · PROJÉTIL · OFENSIVO</div>
+      <div class="archetype-theme">Dano à distância cru, multi-tiro, penetração.</div>
+      <div class="archetype-affinity" style="color:var(--ink-faint)">Sem afinidade fixa</div>
+    </div>
+    <div class="archetype">
+      <div class="archetype-num">05</div>
+      <div class="archetype-name">Guarda de Arremesso</div>
+      <div class="archetype-axes">FÍSICO · PROJÉTIL · DEFENSIVO</div>
+      <div class="archetype-theme">Escudo arremessável, negação de área física.</div>
+      <div class="archetype-affinity" style="color:var(--ink-faint)">Sem afinidade fixa</div>
+    </div>
+    <div class="archetype" style="--card-color:#c9a227">
+      <div class="archetype-num">06</div>
+      <div class="archetype-name">Estrategista</div>
+      <div class="archetype-axes">FÍSICO · PROJÉTIL · SUPORTE</div>
+      <div class="archetype-theme">Armadilhas físicas, marcação de alvo, debuff.</div>
+      <div class="archetype-affinity" style="color:#c9a227">Afinidade: Atena</div>
+    </div>
+    <div class="archetype">
+      <div class="archetype-num">07</div>
+      <div class="archetype-name">Lâmina Arcana</div>
+      <div class="archetype-axes">MÁGICO · MELEE · OFENSIVO</div>
+      <div class="archetype-theme">Arma encantada, explosões de curto alcance.</div>
+      <div class="archetype-affinity" style="color:var(--ink-faint)">Sem afinidade fixa</div>
+    </div>
+    <div class="archetype" style="--card-color:#6f8f7a">
+      <div class="archetype-num">08</div>
+      <div class="archetype-name">Guardião Rúnico</div>
+      <div class="archetype-axes">MÁGICO · MELEE · DEFENSIVO</div>
+      <div class="archetype-theme">Barreiras mágicas, absorção de dano corpo a corpo.</div>
+      <div class="archetype-affinity" style="color:#6f8f7a">Afinidade: Anúbis</div>
+    </div>
+    <div class="archetype">
+      <div class="archetype-num">09</div>
+      <div class="archetype-name">Xamã de Combate</div>
+      <div class="archetype-axes">MÁGICO · MELEE · SUPORTE</div>
+      <div class="archetype-theme">Cura em área curta, totens, buffs mágicos.</div>
+      <div class="archetype-affinity" style="color:var(--ink-faint)">Sem afinidade fixa</div>
+    </div>
+    <div class="archetype" style="--card-color:#7a8fa3">
+      <div class="archetype-num">10</div>
+      <div class="archetype-name">Arquimago</div>
+      <div class="archetype-axes">MÁGICO · PROJÉTIL · OFENSIVO</div>
+      <div class="archetype-theme">Dano mágico à distância puro.</div>
+      <div class="archetype-affinity" style="color:#7a8fa3">Afinidade: Odin</div>
+    </div>
+    <div class="archetype">
+      <div class="archetype-num">11</div>
+      <div class="archetype-name">Ilusionista</div>
+      <div class="archetype-axes">MÁGICO · PROJÉTIL · DEFENSIVO</div>
+      <div class="archetype-theme">Clones, desvio, controle de área mágico.</div>
+      <div class="archetype-affinity" style="color:var(--ink-faint)">Sem afinidade fixa</div>
+    </div>
+    <div class="archetype">
+      <div class="archetype-num">12</div>
+      <div class="archetype-name">Invocador</div>
+      <div class="archetype-axes">MÁGICO · PROJÉTIL · SUPORTE</div>
+      <div class="archetype-theme">Spawna cópias mágicas à distância, cura à distância.</div>
+      <div class="archetype-affinity" style="color:var(--ink-faint)">Sem afinidade fixa</div>
+    </div>
+  </div>
+
+  <div class="cap">
+    <div class="node-level">NÍVEL 16–19 · TIER 4 → NÍVEL 20 · CAPSTONE</div>
+    <div class="node-title">Habilidade única do arquétipo</div>
+    <div class="node-desc">Reskinada por deus — ex: "Fúria de Marte" pro Guerreiro se o deus escolhido foi Marte. Afinidade (+15% eficácia) ou divergência (+vida ou +XP, à escolha) se aplica a partir daqui.</div>
+  </div>
+</div>

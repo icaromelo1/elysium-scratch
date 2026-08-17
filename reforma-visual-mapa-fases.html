@@ -1,0 +1,288 @@
+<title>Elysium — Reforma Visual do Mapa (4 Fases)</title>
+<style>
+  :root {
+    --bg: #f2e8d5;
+    --bg-soft: #ece0c8;
+    --panel: #fbf4e4;
+    --ink: #3a2e22;
+    --ink-muted: #6b5d4a;
+    --ink-faint: #a1907a;
+    --terracotta: #c1592f;
+    --olive: #6b7a4f;
+    --aegean: #3b6e8f;
+    --gold: #b5872a;
+    --border: rgba(58, 46, 34, 0.14);
+    --border-strong: rgba(58, 46, 34, 0.28);
+    color-scheme: light;
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #1c1712;
+    --bg-soft: #241d16;
+    --panel: #2a221a;
+    --ink: #ecdfc8;
+    --ink-muted: #b3a488;
+    --ink-faint: #7c6f5a;
+    --border: rgba(236, 223, 200, 0.14);
+    --border-strong: rgba(236, 223, 200, 0.26);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c1712;
+      --bg-soft: #241d16;
+      --panel: #2a221a;
+      --ink: #ecdfc8;
+      --ink-muted: #b3a488;
+      --ink-faint: #7c6f5a;
+      --border: rgba(236, 223, 200, 0.14);
+      --border-strong: rgba(236, 223, 200, 0.26);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    background-image: radial-gradient(ellipse at 20% 0%, var(--bg-soft) 0%, transparent 60%);
+    color: var(--ink);
+    font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    padding: 56px 20px 90px;
+  }
+
+  .page { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 60px; }
+
+  header.hero { text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  header.hero .eyebrow {
+    font-family: 'Futura', 'Century Gothic', sans-serif;
+    letter-spacing: 5px;
+    color: var(--terracotta);
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+  header.hero h1 { font-size: clamp(28px, 5vw, 46px); margin: 0; font-weight: 600; }
+  header.hero p { max-width: 640px; color: var(--ink-muted); line-height: 1.7; margin: 0; font-size: 15px; font-family: 'Futura', 'Century Gothic', sans-serif; }
+  header.hero .note {
+    font-family: 'Futura', 'Century Gothic', sans-serif;
+    font-size: 12px;
+    color: var(--ink-faint);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 16px;
+  }
+
+  section { display: flex; flex-direction: column; gap: 18px; }
+  .phase-head { display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--border-strong); padding-bottom: 12px; }
+  .phase-num {
+    font-family: 'Futura', 'Century Gothic', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--bg);
+    background: var(--terracotta);
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex: none;
+  }
+  .phase-head h2 { font-size: 20px; margin: 0; font-weight: 600; }
+  .phase-head .tag { font-family: 'Futura', 'Century Gothic', sans-serif; font-size: 11px; color: var(--ink-faint); letter-spacing: 0.5px; }
+  p.desc { font-family: 'Futura', 'Century Gothic', sans-serif; color: var(--ink-muted); font-size: 13.5px; line-height: 1.6; margin: 0; max-width: 720px; }
+
+  .panel { background: var(--panel); border: 1px solid var(--border-strong); border-radius: 14px; padding: 26px; box-shadow: 0 12px 30px rgba(58, 46, 34, 0.08); }
+
+  /* Fase 1: tile grid */
+  .tile-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; border-radius: 10px; overflow: hidden; border: 3px solid var(--ink); }
+  .tile { aspect-ratio: 1; position: relative; background: #6f9a52; }
+  .tile::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0 3px, transparent 4px), radial-gradient(circle at 70% 60%, rgba(0,0,0,0.1) 0 3px, transparent 4px); }
+  .tile--path { background: #d8b177; }
+  .tile--water { background: #3b6e8f; }
+  .tile--prop { display: flex; align-items: center; justify-content: center; }
+  .tile--prop svg { width: 70%; height: 70%; }
+
+  /* Fase 2: autotile */
+  .autotile-row { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
+  .autotile-piece { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .autotile-piece .frame { width: 88px; height: 88px; border-radius: 8px; border: 3px solid var(--ink); overflow: hidden; background: #6f9a52; position: relative; }
+  .autotile-piece .label { font-family: 'Futura', 'Century Gothic', sans-serif; font-size: 11px; color: var(--ink-muted); text-align: center; }
+  .path-bar { position: absolute; background: #d8b177; border: 2px solid #b3854a; }
+
+  /* Fase 2: caminho em angulo livre via carimbo */
+  .stamp-demo { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .stamp-demo .frame { width: 100%; max-width: 460px; border-radius: 10px; border: 3px solid var(--ink); overflow: hidden; background: #6f9a52; position: relative; }
+  .stamp-demo svg { display: block; width: 100%; height: auto; }
+  .stamp-plank { fill: #d8b177; stroke: #b3854a; stroke-width: 2; }
+
+  /* Fase 3: lighting presets */
+  .lighting-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+  .lighting-card { border-radius: 10px; overflow: hidden; border: 1px solid var(--border-strong); }
+  .lighting-scene { height: 90px; position: relative; }
+  .lighting-scene .base { position: absolute; inset: 0; background: linear-gradient(180deg, #6f9a52 0%, #d8b177 60%, #6f9a52 100%); }
+  .lighting-scene .tint { position: absolute; inset: 0; mix-blend-mode: multiply; }
+  .lighting-label { font-family: 'Futura', 'Century Gothic', sans-serif; font-size: 11.5px; padding: 8px 10px; background: var(--panel); color: var(--ink-muted); text-align: center; }
+
+  /* Fase 4: sun angle diagram */
+  .sun-diagram { display: flex; justify-content: center; }
+  .sun-diagram svg { width: 100%; max-width: 640px; height: auto; }
+  .sun-diagram .sun-dot { animation: sun-travel 8s linear infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes sun-travel {
+    0%   { offset-distance: 0%; }
+    100% { offset-distance: 100%; }
+  }
+  .sun-diagram .sun-dot { offset-path: path('M 20 170 Q 320 20 620 170'); }
+  @media (prefers-reduced-motion: reduce) {
+    .sun-diagram .sun-dot { animation: none; offset-distance: 40%; }
+  }
+  .fase4-caption { font-family: 'Futura', 'Century Gothic', sans-serif; font-size: 11.5px; color: var(--ink-faint); text-align: center; margin: 6px 0 0; }
+
+  /* Fase 4: sombreado direcional dos tiles */
+  .shading-block { display: flex; flex-wrap: wrap; gap: 28px; align-items: center; justify-content: center; margin-top: 22px; padding-top: 22px; border-top: 1px dashed var(--border-strong); }
+  .shading-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; width: 200px; border-radius: 8px; overflow: hidden; border: 3px solid var(--ink); }
+  .shading-tile { aspect-ratio: 1; background: #6f9a52; position: relative; }
+  .shading-tile::after { content: ''; position: absolute; inset: 0; }
+  .shading-grid--dawn .shading-tile::after { background: linear-gradient(115deg, rgba(255,244,214,0.45) 0%, transparent 45%, rgba(40,30,15,0.32) 100%); }
+  .shading-grid--noon .shading-tile::after { background: linear-gradient(200deg, rgba(255,244,214,0.22) 0%, transparent 50%, rgba(40,30,15,0.14) 100%); }
+  .shading-grid--dusk .shading-tile::after { background: linear-gradient(305deg, rgba(255,214,168,0.4) 0%, transparent 45%, rgba(30,22,45,0.4) 100%); }
+  .shading-set { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .shading-set .label { font-family: 'Futura', 'Century Gothic', sans-serif; font-size: 11.5px; color: var(--ink-muted); }
+
+  footer { text-align: center; font-family: 'Futura', 'Century Gothic', sans-serif; font-size: 12px; color: var(--ink-faint); padding-top: 24px; border-top: 1px solid var(--border); }
+</style>
+
+<div class="page">
+  <header class="hero">
+    <div class="eyebrow">Elysium · spec aprovada</div>
+    <h1>Reforma Visual do Mapa</h1>
+    <p>Tilemap flat (Bloons TD 6) + tema grego/romano + iluminação estática e dinâmica, em 4 fases — cada uma vira seu próprio plano de implementação.</p>
+    <div class="note">docs/design/2026-07-19-reforma-visual-mapa-tilemap-iluminacao.md</div>
+  </header>
+
+  <section>
+    <div class="phase-head"><span class="phase-num">1</span><h2>Fundação do tilemap</h2><span class="tag">grid · tiles flat · props</span></div>
+    <p class="desc">Grade de 64px, tiles flat na paleta Mediterrâneo Vívido, props gregos/romanos espalhados sem colisão.</p>
+    <div class="panel">
+      <div class="tile-grid">
+        <div class="tile"></div><div class="tile"></div><div class="tile tile--path"></div><div class="tile tile--path"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile tile--water"></div><div class="tile tile--water"></div><div class="tile"></div>
+        <div class="tile"></div><div class="tile tile--prop"><svg viewBox="0 0 64 64"><rect x="26" y="14" width="12" height="38" fill="#e6ddc4" stroke="#8a7a5c" stroke-width="3"/><rect x="20" y="6" width="24" height="10" fill="#e6ddc4" stroke="#8a7a5c" stroke-width="3"/></svg></div><div class="tile tile--path"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile tile--water"></div><div class="tile"></div><div class="tile"></div>
+        <div class="tile"></div><div class="tile"></div><div class="tile tile--path"></div><div class="tile tile--path"></div><div class="tile tile--path"></div><div class="tile tile--path"></div><div class="tile tile--path"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+        <div class="tile tile--prop"><svg viewBox="0 0 64 64"><circle cx="32" cy="20" r="16" fill="#7ea862"/><circle cx="44" cy="26" r="11" fill="#6f9a52"/><rect x="29" y="32" width="6" height="16" fill="#6b5238"/></svg></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile tile--path"></div><div class="tile"></div><div class="tile"></div><div class="tile tile--prop"><svg viewBox="0 0 64 64"><ellipse cx="32" cy="26" rx="12" ry="28" fill="#3f5e30"/><rect x="29" y="50" width="6" height="8" fill="#5a4632"/></svg></div><div class="tile"></div><div class="tile"></div>
+        <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile tile--path"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="phase-head"><span class="phase-num">2</span><h2>Caminho em ângulo livre</h2><span class="tag">1 sprite-base · carimbo ao longo do arco</span></div>
+    <p class="desc">Nada de grade nem ângulos travados em 90°/45° — o caminho continua livre (como hoje), e um único sprite reto é carimbado repetidamente ao longo dele, cada carimbo rotacionado pro ângulo tangente exato daquele ponto. As curvas nascem da própria repetição, não de um tile de curva à parte.</p>
+    <div class="panel">
+      <div class="stamp-demo">
+        <div class="frame">
+          <svg viewBox="0 0 460 200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M30,170 C100,170 140,30 250,30 C330,30 380,140 430,150" fill="none" stroke="#5a7a42" stroke-width="1.5" stroke-dasharray="3 5" opacity="0.6" />
+            <rect class="stamp-plank" x="-17" y="-7" width="34" height="14" rx="2" transform="translate(30,170) rotate(0)" />
+            <rect class="stamp-plank" x="-17" y="-7" width="34" height="14" rx="2" transform="translate(69.2,155.4) rotate(-35.9)" />
+            <rect class="stamp-plank" x="-17" y="-7" width="34" height="14" rx="2" transform="translate(106,120.7) rotate(-47.3)" />
+            <rect class="stamp-plank" x="-17" y="-7" width="34" height="14" rx="2" transform="translate(145.2,79.3) rotate(-43.8)" />
+            <rect class="stamp-plank" x="-17" y="-7" width="34" height="14" rx="2" transform="translate(191.6,44.6) rotate(-27.5)" />
+            <rect class="stamp-plank" x="-17" y="-7" width="34" height="14" rx="2" transform="translate(250,30) rotate(0)" />
+            <rect class="stamp-plank" x="-17" y="-7" width="34" height="14" rx="2" transform="translate(294.6,41.5) rotate(27.2)" />
+            <rect class="stamp-plank" x="-17" y="-7" width="34" height="14" rx="2" transform="translate(333.5,69.4) rotate(41.8)" />
+            <rect class="stamp-plank" x="-17" y="-7" width="34" height="14" rx="2" transform="translate(368.1,103.4) rotate(45.8)" />
+            <rect class="stamp-plank" x="-17" y="-7" width="34" height="14" rx="2" transform="translate(399.8,133.7) rotate(39.1)" />
+            <rect class="stamp-plank" x="-17" y="-7" width="34" height="14" rx="2" transform="translate(430,150) rotate(11.3)" />
+          </svg>
+        </div>
+        <span class="label">mesmo sprite reto, 11 carimbos, ângulos entre -47° e 46° — nenhum travado em múltiplo de 90°/45°</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="phase-head"><span class="phase-num">3</span><h2>Horário fixo por mapa</h2><span class="tag">5 presets · overlay multiply</span></div>
+    <p class="desc">Mesma cena-base, 5 tons de overlay — aplicado uma vez no início da run, sem mudar durante a partida.</p>
+    <div class="lighting-row">
+      <div class="lighting-card">
+        <div class="lighting-scene"><div class="base"></div><div class="tint" style="background: rgba(255,200,150,0.35);"></div></div>
+        <div class="lighting-label">Amanhecer</div>
+      </div>
+      <div class="lighting-card">
+        <div class="lighting-scene"><div class="base"></div><div class="tint" style="background: rgba(255,255,255,0.05);"></div></div>
+        <div class="lighting-label">Dia</div>
+      </div>
+      <div class="lighting-card">
+        <div class="lighting-scene"><div class="base"></div><div class="tint" style="background: rgba(255,225,180,0.2);"></div></div>
+        <div class="lighting-label">Tarde</div>
+      </div>
+      <div class="lighting-card">
+        <div class="lighting-scene"><div class="base"></div><div class="tint" style="background: rgba(193,89,47,0.4);"></div></div>
+        <div class="lighting-label">Entardecer</div>
+      </div>
+      <div class="lighting-card">
+        <div class="lighting-scene"><div class="base"></div><div class="tint" style="background: rgba(20,25,60,0.72);"></div></div>
+        <div class="lighting-label">Noite</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="phase-head"><span class="phase-num">4</span><h2>Ciclo dinâmico + sombra</h2><span class="tag">survivalTimeMs · sunAngle contínuo · props + tiles</span></div>
+    <p class="desc">O sol se move de forma contínua com o tempo de sobrevivência — nada de "pulo" a cada 3min entre 5 estágios fixos, é uma função de progresso interpolada a cada tick. O ângulo resultante rege tanto a sombra dos props quanto um sombreado direcional sutil nos próprios tiles.</p>
+    <div class="panel">
+      <div class="sun-diagram">
+        <svg viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg">
+          <line x1="20" y1="170" x2="620" y2="170" stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="4 4" />
+          <path d="M 20 170 Q 320 20 620 170" fill="none" stroke="var(--gold)" stroke-width="2" stroke-dasharray="3 5" />
+          <circle class="sun-dot" r="9" fill="#fff3d6" stroke="var(--gold)" stroke-width="2" />
+
+          <!-- amanhecer: long shadow pointing right -->
+          <g transform="translate(70,170)"><rect x="-4" y="-30" width="8" height="30" fill="#e6ddc4" stroke="#8a7a5c" stroke-width="2"/></g>
+          <ellipse cx="105" cy="172" rx="34" ry="7" fill="#3a2e22" opacity="0.35" />
+          <text x="70" y="196" text-anchor="middle" font-size="11" fill="var(--ink-faint)" font-family="Futura, sans-serif">amanhecer</text>
+
+          <!-- meio-dia: short shadow -->
+          <g transform="translate(250,170)"><rect x="-4" y="-30" width="8" height="30" fill="#e6ddc4" stroke="#8a7a5c" stroke-width="2"/></g>
+          <ellipse cx="250" cy="172" rx="12" ry="6" fill="#3a2e22" opacity="0.35" />
+          <text x="250" y="196" text-anchor="middle" font-size="11" fill="var(--ink-faint)" font-family="Futura, sans-serif">meio-dia</text>
+
+          <!-- entardecer: long shadow pointing left -->
+          <g transform="translate(430,170)"><rect x="-4" y="-30" width="8" height="30" fill="#e6ddc4" stroke="#8a7a5c" stroke-width="2"/></g>
+          <ellipse cx="395" cy="172" rx="34" ry="7" fill="#3a2e22" opacity="0.35" />
+          <text x="430" y="196" text-anchor="middle" font-size="11" fill="var(--ink-faint)" font-family="Futura, sans-serif">entardecer</text>
+
+          <!-- noite: no shadow -->
+          <g transform="translate(560,170)"><rect x="-4" y="-30" width="8" height="30" fill="#8a8378" stroke="#5a5448" stroke-width="2"/></g>
+          <text x="560" y="196" text-anchor="middle" font-size="11" fill="var(--ink-faint)" font-family="Futura, sans-serif">noite (sem sombra)</text>
+        </svg>
+      </div>
+      <p class="fase4-caption">o ponto percorre o arco continuamente — os rótulos são âncoras de nome, não paradas</p>
+
+      <div class="shading-block">
+        <div class="shading-set">
+          <div class="shading-grid shading-grid--dawn">
+            <div class="shading-tile"></div><div class="shading-tile"></div><div class="shading-tile"></div><div class="shading-tile"></div>
+            <div class="shading-tile"></div><div class="shading-tile"></div><div class="shading-tile"></div><div class="shading-tile"></div>
+          </div>
+          <span class="label">amanhecer — luz rasante, gradiente forte</span>
+        </div>
+        <div class="shading-set">
+          <div class="shading-grid shading-grid--noon">
+            <div class="shading-tile"></div><div class="shading-tile"></div><div class="shading-tile"></div><div class="shading-tile"></div>
+            <div class="shading-tile"></div><div class="shading-tile"></div><div class="shading-tile"></div><div class="shading-tile"></div>
+          </div>
+          <span class="label">meio-dia — luz quase vertical, gradiente sutil</span>
+        </div>
+        <div class="shading-set">
+          <div class="shading-grid shading-grid--dusk">
+            <div class="shading-tile"></div><div class="shading-tile"></div><div class="shading-tile"></div><div class="shading-tile"></div>
+            <div class="shading-tile"></div><div class="shading-tile"></div><div class="shading-tile"></div><div class="shading-tile"></div>
+          </div>
+          <span class="label">entardecer — gradiente invertido, tom quente</span>
+        </div>
+      </div>
+      <p class="fase4-caption">cada tile ganha um gradiente direcional em código (sem alterar a arte-base neutra) — mesmo `sunAngle` que orienta a sombra dos props</p>
+    </div>
+  </section>
+
+  <footer>Companion visual do brainstorming de 19/07/2026 · spec aprovada, pronta pra virar planos por fase</footer>
+</div>
